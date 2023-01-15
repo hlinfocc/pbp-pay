@@ -1,6 +1,8 @@
 package net.hlinfo.pbp.pay.etc;
 
 
+import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -119,8 +121,21 @@ public class AlipayAutoConfig {
      * 存活时间，单位：毫秒
      */
     private long keepAliveDuration = 10000L;
-
+    
     /**
+     * 自定义HTTP Header
+     */
+    private Map<String, String> customHeaders;
+
+    public Map<String, String> getCustomHeaders() {
+		return customHeaders;
+	}
+
+	public void setCustomHeaders(Map<String, String> customHeaders) {
+		this.customHeaders = customHeaders;
+	}
+
+	/**
      * Getter method for property <tt>serverUrl</tt>.
      *
      * @return property value of serverUrl
