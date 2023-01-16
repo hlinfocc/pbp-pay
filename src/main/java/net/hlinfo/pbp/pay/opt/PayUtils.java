@@ -8,6 +8,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import net.hlinfo.opt.Func;
 import net.hlinfo.opt.Jackson;
 
 public class PayUtils {
@@ -61,5 +64,22 @@ public class PayUtils {
 		Jackson.toOutputStream(bos, data, true, PropertyNamingStrategies.SNAKE_CASE);
        return bos;
 	}
-	
+	/**
+	 * 解析form表单的action地址
+	 @param s form表单字符串
+	 @return form表单的action地址
+	 */
+	public static String parseFormAction(CharSequence s) {
+		if (null == s || s.length() == 0) {return null;}
+		Pattern pattern = Pattern.compile("<form.+?action=['\"]([^'\"]+)[^>]*>");
+		Matcher matcher = pattern.matcher(s);
+		
+		while(matcher.find()) {
+			if(Func.isBlank(matcher.group(1))) {
+				return null;
+			}
+			return matcher.group(1);
+		}
+		return null;
+	}
 }
