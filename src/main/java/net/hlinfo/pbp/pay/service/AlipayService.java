@@ -14,6 +14,7 @@ import com.alipay.api.domain.AlipayDataBillEreceiptQueryModel;
 import com.alipay.api.domain.AlipayFundAccountQueryModel;
 import com.alipay.api.domain.AlipayFundTransCommonQueryModel;
 import com.alipay.api.domain.AlipayFundTransUniTransferModel;
+import com.alipay.api.domain.AlipayOpenAuthUserauthRelationshipQueryModel;
 import com.alipay.api.domain.AlipayTradeAppPayModel;
 import com.alipay.api.domain.AlipayTradeCloseModel;
 import com.alipay.api.domain.AlipayTradeCreateModel;
@@ -32,6 +33,7 @@ import com.alipay.api.request.AlipayDataBillEreceiptQueryRequest;
 import com.alipay.api.request.AlipayFundAccountQueryRequest;
 import com.alipay.api.request.AlipayFundTransCommonQueryRequest;
 import com.alipay.api.request.AlipayFundTransUniTransferRequest;
+import com.alipay.api.request.AlipayOpenAuthUserauthRelationshipQueryRequest;
 import com.alipay.api.request.AlipaySystemOauthTokenRequest;
 import com.alipay.api.request.AlipayTradeAppPayRequest;
 import com.alipay.api.request.AlipayTradeCloseRequest;
@@ -44,6 +46,7 @@ import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.request.AlipayTradeWapPayRequest;
 import com.alipay.api.request.AlipayUserInfoAuthRequest;
+import com.alipay.api.request.AlipayUserInfoShareRequest;
 import com.alipay.api.request.ZolozAuthenticationCustomerFtokenQueryRequest;
 import com.alipay.api.request.ZolozAuthenticationSmilepayInitializeRequest;
 import com.alipay.api.response.AlipayDataBillEreceiptApplyResponse;
@@ -51,6 +54,7 @@ import com.alipay.api.response.AlipayDataBillEreceiptQueryResponse;
 import com.alipay.api.response.AlipayFundAccountQueryResponse;
 import com.alipay.api.response.AlipayFundTransCommonQueryResponse;
 import com.alipay.api.response.AlipayFundTransUniTransferResponse;
+import com.alipay.api.response.AlipayOpenAuthUserauthRelationshipQueryResponse;
 import com.alipay.api.response.AlipaySystemOauthTokenResponse;
 import com.alipay.api.response.AlipayTradeAppPayResponse;
 import com.alipay.api.response.AlipayTradeCloseResponse;
@@ -63,6 +67,7 @@ import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.alipay.api.response.AlipayTradeWapPayResponse;
 import com.alipay.api.response.AlipayUserInfoAuthResponse;
+import com.alipay.api.response.AlipayUserInfoShareResponse;
 import com.alipay.api.response.ZolozAuthenticationCustomerFtokenQueryResponse;
 import com.alipay.api.response.ZolozAuthenticationSmilepayInitializeResponse;
 
@@ -79,15 +84,21 @@ public class AlipayService {
 	private RedisUtils redisUtils;
 	@Autowired
 	private AlipayAutoConfig alipayAutoConfig;
-	
+	/**
+	 * alipayClient实例
+	 */
 	private AlipayClient alipayClient;
+	/**
+	 * alipayClient实例(强制证书模式)
+	 */
 	private AlipayClient alipayClientForceCert;
 	
 	/**
 	 * 初始化alipayClient,通过apiMode配置参数设置是公钥模式还是证书模式
+	 * @return alipayClient实例
 	 @throws AlipayApiException
 	 */
-	private void initAlipayClient() throws AlipayApiException {
+	private AlipayClient initAlipayClient() throws AlipayApiException {
 		if(alipayClient!=null) {
 			AlipayConfig alipayConfig = new AlipayConfig();
 			alipayConfig.setServerUrl(alipayAutoConfig.getServerUrl());
@@ -144,12 +155,14 @@ public class AlipayService {
 			alipayConfig.setPrivateKey(alipayAutoConfig.getPrivateKey());
 			alipayClient = new DefaultAlipayClient(alipayConfig);
 		}
+		return alipayClient;
 	}
 	/**
 	 * 初始化alipayClient,强制证书模式,忽略apiMode及公钥模式的配置参数
+	 * @return alipayClient实例(强制证书模式)
 	 @throws AlipayApiException
 	 */
-	private void initAlipayClientForceCert() throws AlipayApiException {
+	private AlipayClient initAlipayClientForceCert() throws AlipayApiException {
 		if(alipayClientForceCert!=null) {
 			AlipayConfig alipayConfig = new AlipayConfig();
 			alipayConfig.setServerUrl(alipayAutoConfig.getServerUrl());
@@ -202,6 +215,7 @@ public class AlipayService {
 			alipayConfig.setPrivateKey(alipayAutoConfig.getPrivateKey());
 			alipayClientForceCert = new DefaultAlipayClient(alipayConfig);
 		}
+		return alipayClientForceCert;
 	}
 	/**
 	 * 获取alipayClient实例
@@ -261,7 +275,7 @@ public class AlipayService {
         this.initAlipayClient();
         AlipayTradeWapPayRequest request = new AlipayTradeWapPayRequest();
         request.setBizModel(model);
-        AlipayTradeWapPayResponse response = alipayClient.sdkExecute(request);
+        AlipayTradeWapPayResponse response = alipayClient.pageExecute(request);
         log.debug("AlipayTradeWapPayResponse:{}",response);
         if (response.isSuccess()) {
             return response.getBody();
@@ -284,7 +298,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
 		request.setBizModel(model);
-		AlipayTradePagePayResponse response = alipayClient.sdkExecute(request);
+		AlipayTradePagePayResponse response = alipayClient.pageExecute(request);
 		log.debug("AlipayTradePagePayResponse:{}",response);
 		if (response.isSuccess()) {
 			return response.getBody();
@@ -307,7 +321,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		AlipayTradeCreateRequest request = new AlipayTradeCreateRequest();
 		request.setBizModel(model);
-		AlipayTradeCreateResponse response = alipayClient.sdkExecute(request);
+		AlipayTradeCreateResponse response = alipayClient.execute(request);
 		log.debug("AlipayTradeCreateResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -331,7 +345,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		AlipayTradePrecreateRequest request = new AlipayTradePrecreateRequest();
 		request.setBizModel(model);
-		AlipayTradePrecreateResponse response = alipayClient.sdkExecute(request);
+		AlipayTradePrecreateResponse response = alipayClient.execute(request);
 		log.debug("AlipayTradePrecreateResponse:{}",response);
 		if (response.isSuccess()) {
 			return response.getQrCode();
@@ -355,7 +369,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		AlipayTradePayRequest request = new AlipayTradePayRequest();
 		request.setBizModel(model);
-		AlipayTradePayResponse response = alipayClient.sdkExecute(request);
+		AlipayTradePayResponse response = alipayClient.execute(request);
 		log.debug("AlipayTradePayResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -379,7 +393,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		ZolozAuthenticationSmilepayInitializeRequest request = new ZolozAuthenticationSmilepayInitializeRequest();
 		request.setBizModel(model);
-		ZolozAuthenticationSmilepayInitializeResponse response = alipayClient.sdkExecute(request);
+		ZolozAuthenticationSmilepayInitializeResponse response = alipayClient.execute(request);
 		log.debug("ZolozAuthenticationSmilepayInitializeResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -402,7 +416,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		ZolozAuthenticationCustomerFtokenQueryRequest request = new ZolozAuthenticationCustomerFtokenQueryRequest();
 		request.setBizModel(model);
-		ZolozAuthenticationCustomerFtokenQueryResponse response = alipayClient.sdkExecute(request);
+		ZolozAuthenticationCustomerFtokenQueryResponse response = alipayClient.execute(request);
 		log.debug("ZolozAuthenticationCustomerFtokenQueryResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -425,7 +439,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
 		request.setBizModel(model);
-		AlipayTradeQueryResponse response = alipayClient.sdkExecute(request);
+		AlipayTradeQueryResponse response = alipayClient.execute(request);
 		log.debug("AlipayTradeQueryResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -448,7 +462,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
 		request.setBizModel(model);
-		AlipayTradeRefundResponse response = alipayClient.sdkExecute(request);
+		AlipayTradeRefundResponse response = alipayClient.execute(request);
 		log.debug("AlipayTradeRefundResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -471,7 +485,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		AlipayTradeFastpayRefundQueryRequest request = new AlipayTradeFastpayRefundQueryRequest();
 		request.setBizModel(model);
-		AlipayTradeFastpayRefundQueryResponse response = alipayClient.sdkExecute(request);
+		AlipayTradeFastpayRefundQueryResponse response = alipayClient.execute(request);
 		log.debug("AlipayTradeFastpayRefundQueryResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -495,7 +509,7 @@ public class AlipayService {
 		this.initAlipayClient();
 		AlipayTradeCloseRequest request = new AlipayTradeCloseRequest();
 		request.setBizModel(model);
-		AlipayTradeCloseResponse response = alipayClient.sdkExecute(request);
+		AlipayTradeCloseResponse response = alipayClient.execute(request);
 		log.debug("AlipayTradeCloseResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -520,7 +534,7 @@ public class AlipayService {
 		this.initAlipayClientForceCert();
 		AlipayFundTransUniTransferRequest request = new AlipayFundTransUniTransferRequest();
 		request.setBizModel(model);
-		AlipayFundTransUniTransferResponse response = alipayClientForceCert.sdkExecute(request);
+		AlipayFundTransUniTransferResponse response = alipayClientForceCert.certificateExecute(request);
 		log.debug("AlipayFundTransUniTransferResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -545,7 +559,7 @@ public class AlipayService {
 		this.initAlipayClientForceCert();
 		AlipayFundTransCommonQueryRequest request = new AlipayFundTransCommonQueryRequest();
 		request.setBizModel(model);
-		AlipayFundTransCommonQueryResponse response = alipayClientForceCert.sdkExecute(request);
+		AlipayFundTransCommonQueryResponse response = alipayClientForceCert.certificateExecute(request);
 		log.debug("AlipayFundTransCommonQueryResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -566,10 +580,10 @@ public class AlipayService {
 				 </p>
 	 */
 	public AlipayFundAccountQueryResponse queryAccountSurplus(AlipayFundAccountQueryModel model) throws AlipayApiException, PayException {
-		this.initAlipayClientForceCert();
+		this.initAlipayClient();
 		AlipayFundAccountQueryRequest request = new AlipayFundAccountQueryRequest();
 		request.setBizModel(model);
-		AlipayFundAccountQueryResponse response = alipayClientForceCert.sdkExecute(request);
+		AlipayFundAccountQueryResponse response = alipayClient.execute(request);
 		log.debug("AlipayFundTransUniTransferResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -596,10 +610,10 @@ public class AlipayService {
 				 </p>
 	 */
 	public String ereceiptApply(AlipayDataBillEreceiptApplyModel model) throws AlipayApiException, PayException {
-		this.initAlipayClientForceCert();
+		this.initAlipayClient();
 		AlipayDataBillEreceiptApplyRequest request = new AlipayDataBillEreceiptApplyRequest();
 		request.setBizModel(model);
-		AlipayDataBillEreceiptApplyResponse response = alipayClientForceCert.sdkExecute(request);
+		AlipayDataBillEreceiptApplyResponse response = alipayClient.execute(request);
 		log.debug("AlipayFundTransUniTransferResponse:{}",response);
 		if (response.isSuccess()) {
 			return response.getFileId();
@@ -628,12 +642,12 @@ public class AlipayService {
 		if(Func.isBlank(fileId)) {
 			throw new PayException("fileId不能为空");
 		}
-		this.initAlipayClientForceCert();
+		this.initAlipayClient();
 		AlipayDataBillEreceiptQueryRequest request = new AlipayDataBillEreceiptQueryRequest();
 		AlipayDataBillEreceiptQueryModel model = new AlipayDataBillEreceiptQueryModel();
 		model.setFileId(fileId);
 		request.setBizModel(model);
-		AlipayDataBillEreceiptQueryResponse response = alipayClientForceCert.sdkExecute(request);
+		AlipayDataBillEreceiptQueryResponse response = alipayClient.execute(request);
 		log.debug("AlipayDataBillEreceiptQueryResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
@@ -653,10 +667,10 @@ public class AlipayService {
 				 </p>
 	 */
 	public String userInfoAuth(AlipayUserInfoAuthModel model) throws AlipayApiException, PayException {
-		this.initAlipayClientForceCert();
+		this.initAlipayClient();
 		AlipayUserInfoAuthRequest request = new AlipayUserInfoAuthRequest();
 		request.setBizModel(model);
-		AlipayUserInfoAuthResponse response = alipayClientForceCert.sdkExecute(request);
+		AlipayUserInfoAuthResponse response = alipayClient.execute(request);
 		log.debug("AlipayUserInfoAuthResponse:{}",response);
 		if (response.isSuccess()) {
 			return response.getBody();
@@ -676,15 +690,60 @@ public class AlipayService {
 				 </p>
 	 */
 	public AlipaySystemOauthTokenResponse oauthToken(AlipaySystemOauthTokenModel model) throws AlipayApiException, PayException {
-		this.initAlipayClientForceCert();
+		this.initAlipayClient();
 		AlipaySystemOauthTokenRequest request = new AlipaySystemOauthTokenRequest();
 		request.setCode(model.getCode());
-       request.setGrantType(model.getGrantType());
-       request.setRefreshToken(model.getRefreshToken());
-		AlipaySystemOauthTokenResponse response = alipayClientForceCert.sdkExecute(request);
+		request.setGrantType(model.getGrantType());
+		request.setRefreshToken(model.getRefreshToken());
+		AlipaySystemOauthTokenResponse response = alipayClient.execute(request);
 		log.debug("AlipaySystemOauthTokenResponse:{}",response);
 		if (response.isSuccess()) {
 			return response;
+		} else {
+			throw new PayException(response.getMsg()+",原因:"+response.getSubMsg(),response);
+		}
+	}
+	/**
+	 * 支付宝会员授权信息查询接口
+	 @param accessToken 授权访问令牌，oauthToken方法获取
+	 @return 会员信息对象
+	 @throws AlipayApiException 支付宝的API SDK异常
+	 @throws PayException 
+				<p>接口调用失败返回异常,返回code大于10000的情况,<br>
+				  message: 异常信息,为: msg+",原因:"+sub_msg<br>
+				  extendData: 属性为接口返回的{@code AlipayUserInfoShareResponse}对象
+				 </p>
+	 */
+	public AlipayUserInfoShareResponse userInfo(String accessToken) throws AlipayApiException, PayException {
+		this.initAlipayClient();
+		AlipayUserInfoShareRequest request = new AlipayUserInfoShareRequest();
+		AlipayUserInfoShareResponse response = alipayClient.execute(request,accessToken);
+		log.debug("AlipayUserInfoShareResponse:{}",response);
+		if (response.isSuccess()) {
+			return response;
+		} else {
+			throw new PayException(response.getMsg()+",原因:"+response.getSubMsg(),response);
+		}
+	}
+	/**
+	 * 支付宝会员授权信息查询接口
+	 @param model 用户授权关系查询参数
+	 @return 授权结果查询结果,示例值:{"auth_user":true,"auth_zhima":false}
+	 @throws AlipayApiException 支付宝的API SDK异常
+	 @throws PayException 
+				<p>接口调用失败返回异常,返回code大于10000的情况,<br>
+				  message: 异常信息,为: msg+",原因:"+sub_msg<br>
+				  extendData: 属性为接口返回的{@code AlipayOpenAuthUserauthRelationshipQueryResponse}对象
+				 </p>
+	 */
+	public String authRelationshipQuery(AlipayOpenAuthUserauthRelationshipQueryModel model) throws AlipayApiException, PayException {
+		this.initAlipayClient();
+		AlipayOpenAuthUserauthRelationshipQueryRequest request = new AlipayOpenAuthUserauthRelationshipQueryRequest();
+		request.setBizModel(model);
+		AlipayOpenAuthUserauthRelationshipQueryResponse response = alipayClient.execute(request);
+		log.debug("AlipayOpenAuthUserauthRelationshipQueryResponse:{}",response);
+		if (response.isSuccess()) {
+			return response.getQueryDetail();
 		} else {
 			throw new PayException(response.getMsg()+",原因:"+response.getSubMsg(),response);
 		}
