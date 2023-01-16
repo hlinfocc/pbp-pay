@@ -107,6 +107,8 @@ public class IndexController {
 
 #### 4.1配置
 
+在application.yml中加入配置信息
+
 #### 4.2在Controller或者service中使用
 
 
