@@ -521,7 +521,7 @@ public class AlipayAutoConfig {
 	}
 	/**
 	 * 接口加签方式,可选项:publickey[密钥（普遍适用）],cert[证书（若使用“现金红包”、“单笔转账到支付宝“产品必选 ）]
-	 @param apiSignSet 接口加签方式
+	 @param apiMode 接口加签方式
 	 */
 	public void setApiMode(String apiMode) {
 		this.apiMode = apiMode;

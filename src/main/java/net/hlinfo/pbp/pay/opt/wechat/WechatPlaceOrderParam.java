@@ -134,7 +134,7 @@ public class WechatPlaceOrderParam implements Serializable{
 	}
 	/**
 	 * 商户订单号,商户系统内部订单号,也就是我们程序生成的订单号，只能是数字、大小写字母_-*且在同一个商户号下唯一[必填] 
-	 @param out_trade_no 商户订单号
+	 @param outTradeNo 商户订单号
 	 */
 	public void setOutTradeNo(String outTradeNo) {
 		this.outTradeNo = outTradeNo;
@@ -148,7 +148,7 @@ public class WechatPlaceOrderParam implements Serializable{
 	}
 	/**
 	 * 交易结束时间,订单失效时间，遵循rfc3339标准格式，格式为yyyy-MM-DDTHH:mm:ss+TIMEZONE
-	 @param time_expire 交易结束时间
+	 @param timeExpire 交易结束时间
 	 */
 	public void setTimeExpire(String timeExpire) {
 		this.timeExpire = timeExpire;

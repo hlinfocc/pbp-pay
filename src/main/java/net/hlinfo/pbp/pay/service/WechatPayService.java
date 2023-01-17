@@ -491,7 +491,7 @@ public class WechatPayService {
 	/**
 	 * 关闭订单
 	 @param outTradeNo 商户订单号,商户系统内部订单号
-	 @return
+	 @return 是否操作成功
 	 @throws Exception
 	 */
 	public boolean closePayOrder(String outTradeNo) throws Exception {
@@ -596,7 +596,7 @@ public class WechatPayService {
 	 * 验证应答或者支付回调的签名
 	 @param request
 	 @param body
-	 @return
+	 @return 验签结果
 	 @throws Exception
 	 */
 	public boolean verifiedSign(HttpServletRequest request, String body) throws Exception {

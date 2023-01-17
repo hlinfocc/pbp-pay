@@ -30,9 +30,9 @@ import net.hlinfo.opt.Jackson;
 public class PayUtils {
 	public static final Logger log = LoggerFactory.getLogger(PayUtils.class);
 	/**
-     * 获取请求文体
+     * 获取请求body数据
      * @param request
-     * @return
+     * @return 请求body数据
      * @throws IOException
      */
     public static String getRequestBody(HttpServletRequest request) throws Exception {
