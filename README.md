@@ -25,11 +25,19 @@ pbp-pay 是基于Spring Boot，集成微信支付和支付宝支付的工具，�
 
 ### 2在启动类配置扫描本程序包名
 
+在启动类加上如下注解：
+
+```java
+@ComponentScans(value= {@ComponentScan(value = {"net.hlinfo.pbp"})})
+```
+
 配置扫描包目的在于注入相关配置和@Bean
+
+示例：
 
 ```java
 @SpringBootApplication
-@ComponentScan({"net.hlinfo.pbp"}) //注意这里要配置上，否则该框架不生效
+@ComponentScans(value= {@ComponentScan(value = {"net.hlinfo.pbp"})}) //注意这里要配置上，否则该框架不生效
 public class TestApplication {
     public static void main(String[] args) {
         SpringApplication.run(TestApplication.class, args);
