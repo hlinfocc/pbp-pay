@@ -3,7 +3,7 @@
 
 # 简介
 
-pbp-pay 是基于Spring Boot，集成微信支付和支付宝支付的工具，轻量级、、开箱即用、快速使用。
+pbp-pay 是基于Spring Boot，集成微信支付和支付宝支付的工具，轻量级、开箱即用、快速使用。
 
 # 特点
 
@@ -28,21 +28,31 @@ pbp-pay 是基于Spring Boot，集成微信支付和支付宝支付的工具，�
 在启动类加上如下注解：
 
 ```java
-@ComponentScans(value= {@ComponentScan(value = {"net.hlinfo.pbp"})})
+@EnableHlinfoPBP
 ```
 
-配置扫描包目的在于注入相关配置和@Bean
+加此注解目的在于自动扫描net.hlinfo.pbp包，注入相关@Bean
 
 示例：
 
 ```java
+package net.hlinfo.example;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import net.hlinfo.pbp.pay.opt.EnableHlinfoPBP;
+
 @SpringBootApplication
-@ComponentScans(value= {@ComponentScan(value = {"net.hlinfo.pbp"})}) //注意这里要配置上，否则该框架不生效
-public class TestApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(TestApplication.class, args);
-    }
+@EnableHlinfoPBP
+public class SpringbootExampleApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringbootExampleApplication.class, args);
+	}
+
 }
+
 ```
 
 
@@ -111,14 +121,116 @@ public class IndexController {
 
 ```
 
+对于本工具未集成实现的接口，可以通过公共wechatPayService.httpPost请求方法和公共wechatPayService.httpGet请求方法来实现
+
 ### 4.支付宝支付使用
 
 #### 4.1配置
 
 在application.yml中加入配置信息
 
+秘钥模式：
+
+```yml
+alipay:
+  app-id: 2023002185655063
+  private-key: "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAb0BBLvx30uWcX180skn839b99L4Ig=="
+  alipay-public-key: "MIIBIjANBgkqhkiG9w0wFf4KYcw2AqxufQIDAQAB"
+```
+
+说明：
+* app-id位支付宝应用ID
+* private-key位私钥，也就是通过[支付宝开放平台密钥工具](https://opendocs.alipay.com/common/02kipk "支付宝开放平台密钥工具")生成的秘钥的应用私钥
+* alipay-public-key支付宝公钥，将通过[支付宝开放平台密钥工具](https://opendocs.alipay.com/common/02kipk "支付宝开放平台密钥工具")生成的秘钥的应用公钥上传到支付宝开放平台获取
+* encrypt-type：接口内容加密方式，默认为AES，可以不设置
+* encrypt-key：敏感信息对称加密算法密钥，支付宝开放平台设置接口内容加密方式后可获取,若不设置，则接口内容不会被加密
+
+
+证书模式：
+
+```yml
+alipay:
+  app-id: 2023002185655063
+  api-mode: cert
+  app-private-key: "MIIEvwIBADANBgkqhkiG9w0BAQSDHDGDSHlAgEAAb0BBLvx30uWcX180skn839b99L4IgKJGH=="
+  app-cert-path: /path/alipay/appCertPublicKey.crt
+  alipay-public-cert-path: /path/alipay/alipayCertPublicKey.crt
+  root-cert-path: /path/alipay/alipayRootCert.crt
+```
+
+说明：
+* app-id：位支付宝应用ID
+* api-mode：接口加签方式,可选项:publickey[密钥（普遍适用）],cert[证书（若使用“现金红包”、“单笔转账到支付宝“产品必选 ）]
+* app-private-key：应用私钥，也就是通过[支付宝开放平台密钥工具](https://opendocs.alipay.com/common/02kipk "支付宝开放平台密钥工具")生成的CSR文件目录中的应用私钥
+* app-cert-path：应用公钥证书路径，支付宝开放平台获取
+* alipay-public-cert-path：支付宝公钥证书路径，支付宝开放平台获取
+* root-cert-path：支付宝根证书路径，支付宝开放平台获取
+* 其中，app-cert-path、alipay-public-cert-path、root-cert-path也可以换成app-cert-content、alipay-public-cert-content、root-cert-content这样就可以直接填写证书内容字符串
+* encrypt-type：接口内容加密方式，默认为AES，可以不设置
+* encrypt-key：敏感信息对称加密算法密钥，支付宝开放平台设置接口内容加密方式后可获取,若不设置，则接口内容不会被加密
+
+对于单笔转账到支付宝等接口，因为强制使用证书，所以不受api-mode参数限制，只需要配置好app-private-key、app-cert-path、 alipay-public-cert-path、root-cert-path等证书参数即可
+
+更多参数请查看AlipayAutoConfig类
+
 #### 4.2在Controller或者service中使用
 
+```java
 
-# 许可证
+package net.hlinfo.example.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.alipay.api.AlipayApiException;
+import com.alipay.api.domain.AlipayTradePagePayModel;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import net.hlinfo.example.utils.Resp;
+import net.hlinfo.opt.RedisUtils;
+import net.hlinfo.pbp.pay.exception.PayException;
+import net.hlinfo.pbp.pay.service.AlipayService;
+
+@Api(tags = "支付测试")
+@RestController
+@RequestMapping("/paytest")
+public class PayTestController extends BaseController {
+	
+	@Autowired
+	private AlipayService alipayService;
+	
+	@ApiOperation(value="PC电脑端网页下单")
+	@PostMapping("/tradePCPay")
+	public Resp<String> tradePCPay(){
+		try {
+			AlipayTradePagePayModel model = new AlipayTradePagePayModel();
+			model.setOutTradeNo("20230202100101001");
+			model.setTotalAmount("0.01");
+			model.setSubject("P100 1TB");
+			model.setProductCode("FAST_INSTANT_TRADE_PAY");
+			
+			String rs = alipayService.tradePCPay(model);
+			System.out.println(rs);
+			return new Resp().ok("操作成功", rs);
+		} catch (AlipayApiException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		catch (PayException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new Resp().error("创建订单失败");
+	}
+	
+}
+
+```
+
+本工具仅集成了常用的接口，其他未实现的接口，可以通过alipayService.getAlipayClient方法获取alipayClient实例，自行实现
+
+# 5.许可证
 MIT License 

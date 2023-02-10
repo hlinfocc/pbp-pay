@@ -72,7 +72,6 @@ import com.alipay.api.response.ZolozAuthenticationCustomerFtokenQueryResponse;
 import com.alipay.api.response.ZolozAuthenticationSmilepayInitializeResponse;
 
 import net.hlinfo.opt.Func;
-import net.hlinfo.opt.RedisUtils;
 import net.hlinfo.pbp.pay.etc.AlipayAutoConfig;
 import net.hlinfo.pbp.pay.exception.PayException;
 import net.hlinfo.pbp.pay.opt.alipay.AlipaySystemOauthTokenModel;
@@ -80,8 +79,7 @@ import net.hlinfo.pbp.pay.opt.alipay.AlipaySystemOauthTokenModel;
 @Service
 public class AlipayService {
 	public static final Logger log = LoggerFactory.getLogger(AlipayService.class);
-	@Autowired
-	private RedisUtils redisUtils;
+	
 	@Autowired
 	private AlipayAutoConfig alipayAutoConfig;
 	/**
@@ -99,15 +97,15 @@ public class AlipayService {
 	 @throws AlipayApiException
 	 */
 	private AlipayClient initAlipayClient() throws AlipayApiException {
-		if(alipayClient!=null) {
+		if(alipayClient==null) {
 			AlipayConfig alipayConfig = new AlipayConfig();
 			alipayConfig.setServerUrl(alipayAutoConfig.getServerUrl());
 			alipayConfig.setAppId(alipayAutoConfig.getAppId());
 			alipayConfig.setFormat(alipayAutoConfig.getFormat());
 			alipayConfig.setCharset(alipayAutoConfig.getCharset());
 			alipayConfig.setSignType(alipayAutoConfig.getSignType());
-			alipayConfig.setEncryptType(alipayAutoConfig.getEncryptType());
 			if(Func.isNotBlank(alipayAutoConfig.getEncryptKey())) {
+				alipayConfig.setEncryptType(alipayAutoConfig.getEncryptType());
 				alipayConfig.setEncryptKey(alipayAutoConfig.getEncryptKey());
 			}
 			if(Func.isNotBlank(alipayAutoConfig.getProxyHost())) {
@@ -152,7 +150,11 @@ public class AlipayService {
 			}else {
 				alipayConfig.setAlipayPublicKey(alipayAutoConfig.getAlipayPublicKey());
 			}
-			alipayConfig.setPrivateKey(alipayAutoConfig.getPrivateKey());
+			if(Func.isNotBlank(alipayAutoConfig.getPrivateKey())) {
+				alipayConfig.setPrivateKey(alipayAutoConfig.getPrivateKey());
+			}else if(Func.isNotBlank(alipayAutoConfig.getAppPrivateKey())) {
+				alipayConfig.setPrivateKey(alipayAutoConfig.getAppPrivateKey());
+			}
 			alipayClient = new DefaultAlipayClient(alipayConfig);
 		}
 		return alipayClient;
@@ -163,15 +165,15 @@ public class AlipayService {
 	 @throws AlipayApiException
 	 */
 	private AlipayClient initAlipayClientForceCert() throws AlipayApiException {
-		if(alipayClientForceCert!=null) {
+		if(alipayClientForceCert==null) {
 			AlipayConfig alipayConfig = new AlipayConfig();
 			alipayConfig.setServerUrl(alipayAutoConfig.getServerUrl());
 			alipayConfig.setAppId(alipayAutoConfig.getAppId());
 			alipayConfig.setFormat(alipayAutoConfig.getFormat());
 			alipayConfig.setCharset(alipayAutoConfig.getCharset());
 			alipayConfig.setSignType(alipayAutoConfig.getSignType());
-			alipayConfig.setEncryptType(alipayAutoConfig.getEncryptType());
 			if(Func.isNotBlank(alipayAutoConfig.getEncryptKey())) {
+				alipayConfig.setEncryptType(alipayAutoConfig.getEncryptType());
 				alipayConfig.setEncryptKey(alipayAutoConfig.getEncryptKey());
 			}
 			if(Func.isNotBlank(alipayAutoConfig.getProxyHost())) {
@@ -212,7 +214,11 @@ public class AlipayService {
 			if(Func.isNotBlank(alipayAutoConfig.getRootCertContent())) {
 				alipayConfig.setRootCertContent(alipayAutoConfig.getRootCertContent());
 			}
-			alipayConfig.setPrivateKey(alipayAutoConfig.getPrivateKey());
+			if(Func.isNotBlank(alipayAutoConfig.getAppPrivateKey())) {
+				alipayConfig.setPrivateKey(alipayAutoConfig.getAppPrivateKey());
+			}else if(Func.isNotBlank(alipayAutoConfig.getPrivateKey())) {
+				alipayConfig.setPrivateKey(alipayAutoConfig.getPrivateKey());
+			}
 			alipayClientForceCert = new DefaultAlipayClient(alipayConfig);
 		}
 		return alipayClientForceCert;

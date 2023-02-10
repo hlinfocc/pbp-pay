@@ -53,6 +53,10 @@ public class AlipayAutoConfig {
     private String alipayPublicKey;
 
     /**
+     * 商户应用私钥（证书模式下设置，公钥模式下无需设置）
+     */
+    private String appPrivateKey;
+    /**
      * 商户应用公钥证书路径（证书模式下设置，公钥模式下无需设置）
      */
     private String appCertPath;
@@ -298,6 +302,23 @@ public class AlipayAutoConfig {
     }
 
     /**
+	 *  Getter method for property <b>appPrivateKey</b>.
+	 * @return property value of appPrivateKey
+	 */
+	public String getAppPrivateKey() {
+		return appPrivateKey;
+	}
+
+	/**
+	 * Setter method for property <b>appPrivateKey</b>.
+	 *
+	 * @param appPrivateKey value to be assigned to property appPrivateKey
+	 */
+	public void setAppPrivateKey(String appPrivateKey) {
+		this.appPrivateKey = appPrivateKey;
+	}
+
+	/**
      * Getter method for property <tt>certPath</tt>.
      *
      * @return property value of certPath
