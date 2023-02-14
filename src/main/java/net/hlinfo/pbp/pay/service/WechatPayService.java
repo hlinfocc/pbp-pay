@@ -96,7 +96,7 @@ public class WechatPayService {
     private boolean initCertificate(boolean ignoreCache) throws Exception {
 	   	if(!ignoreCache) {
 	   		if(wechatPayCertificates==null || wechatPayCertificates.isEmpty()) {
-		   		String certStr = redisUtils.getObject(PayRedisKey.WECHA_PAY_CERT);
+		   		String certStr = redisUtils.getObject(PayRedisKey.WECHA_PAY_CERT+wpc.getMerchId());
 		   		if(Func.isNotBlank(certStr)) {
 		   			this.parseCertificate(certStr);
 		   			return true;
@@ -129,7 +129,7 @@ public class WechatPayService {
        CloseableHttpResponse response = httpClient.execute(httpGet);
        if(response.getStatusLine().getStatusCode()==SC_OK) {
         	String bodyAsString = EntityUtils.toString(response.getEntity());
-        	redisUtils.setCacheObject(PayRedisKey.WECHA_PAY_CERT, bodyAsString, 3*24*60, TimeUnit.MINUTES);
+        	redisUtils.setObject(PayRedisKey.WECHA_PAY_CERT+wpc.getMerchId(), bodyAsString, 3*24*60, TimeUnit.MINUTES);
         	this.parseCertificate(bodyAsString);
         	return true;
         }
