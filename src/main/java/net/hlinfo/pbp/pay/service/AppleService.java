@@ -62,8 +62,7 @@ public class AppleService {
     /**
      * ios应用内支付服务器校验
      *
-     * @param receipt
-     *            账单
+     * @param receipt 账单
      * @param type 类型：0沙盒环境，1线上环境
      * @return null 或返回结果
      *
@@ -111,10 +110,10 @@ public class AppleService {
     }
     
     /**
-     * 用BASE64加密
+     * 用BASE64编码
      *
-     * @param str
-     * @return
+     * @param str 字符串
+     * @return 编码后的BASE64串
      */
     public static String getBASE64(String str) {
         byte[] b = str.getBytes();
@@ -127,7 +126,7 @@ public class AppleService {
     /**
 	 * 检查用户身份令牌的有效性和完整性。
 	 * @param identityToken 用户身份令牌
-	 * @return
+	 * @return 校验信息对象
 	 */
     public AppleSignValidateVo verifyIdentifyToken(String identityToken) {
     	AppleSignValidateUtils appleSignValidate= new AppleSignValidateUtils();

@@ -27,7 +27,7 @@ public class AppleSignValidateUtils {
 	/**
 	 * 检查用户身份令牌的有效性和完整性。
 	 * @param identityToken 用户身份令牌
-	 * @return
+	 * @return 校验信息对象
 	 */
 	@SuppressWarnings("unchecked")
 	public AppleSignValidateVo verifyIdentifyToken(String identityToken) {
@@ -117,7 +117,7 @@ public class AppleSignValidateUtils {
 	 * @param jwt 客户端SDK登陆返回的IdentityToken
 	 * @param audience 苹果应用AppId
 	 * @param subject 苹果应用OpenId
-	 * @return
+	 * @return 校验信息对象
 	 */
 	  private AppleSignValidateVo verify(PublicKey key, String jwt, String audience, String subject) {
 		  AppleSignValidateVo asv = new AppleSignValidateVo();
