@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.hlinfo</groupId>
   <artifactId>pbp-pay</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <name>pbp-pay</name>
   <description>pbp-pay 是基于Spring Boot，集成微信支付和支付宝支付的工具</description>
   
@@ -15,6 +15,9 @@
 		<swagger2.version>1.5.22</swagger2.version>
 		<alipay-sdk-java.version>4.35.32.ALL</alipay-sdk-java.version>
 		<wechatpay-apache-httpclient.version>0.4.8</wechatpay-apache-httpclient.version>
+		<hutool-all.version>5.8.12</hutool-all.version>
+		<jwks-rsa.version>0.21.3</jwks-rsa.version>
+		<jjwt.version>0.9.1</jjwt.version>
 	</properties>
 	
 	<parent>
@@ -44,6 +47,10 @@
 			<artifactId>spring-boot-starter-json</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<scope>provided</scope>
@@ -67,6 +74,25 @@
 			<groupId>com.alipay.sdk</groupId>
 			<artifactId>alipay-sdk-java</artifactId>
 			<version>${alipay-sdk-java.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>cn.hutool</groupId>
+		    <artifactId>hutool-all</artifactId>
+		    <version>${hutool-all.version}</version>
+		    <scope>compile</scope>
+			 <optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>${jjwt.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.auth0</groupId>
+		    <artifactId>jwks-rsa</artifactId>
+		    <version>${jwks-rsa.version}</version>
+		    <scope>compile</scope>
 		</dependency>
 	</dependencies>
 	

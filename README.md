@@ -232,5 +232,140 @@ public class PayTestController extends BaseController {
 
 本工具仅集成了常用的接口，其他未实现的接口，可以通过alipayService.getAlipayClient方法获取alipayClient实例，自行实现
 
-# 5.许可证
+# 5.Apple账号登录及iOS内购项目支付
+
+使用示例：
+
+```java
+package net.hlinfo.example.controller;
+
+
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+
+import org.nutz.dao.Cnd;
+import org.nutz.lang.Strings;
+import org.nutz.lang.util.NutMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import net.hlinfo.example.utils.JwtUtil;
+import net.hlinfo.example.utils.Resp;
+import net.hlinfo.opt.Func;
+import net.hlinfo.pbp.pay.opt.apple.AppleLogin;
+import net.hlinfo.pbp.pay.opt.apple.AppleLoginUserInfo;
+import net.hlinfo.pbp.pay.opt.apple.AppleLoginUserInfo.UserInfo;
+import net.hlinfo.pbp.pay.opt.apple.AppleSignValidateVo;
+import net.hlinfo.pbp.pay.opt.apple.IosIapParam;
+import net.hlinfo.pbp.pay.service.AppleService;
+
+@Api(tags = "Apple账号登录及iOS内购项目支付测试")
+@RestController
+@RequestMapping("/apple")
+public class AppleController extends BaseController {
+	
+	@Autowired
+	private AppleService apple;
+	
+	@ApiOperation(value = "苹果内购支付校验")
+	@PostMapping(value = "/iosIapPay")
+	public Resp<Object> iosIapPay(@RequestBody IosIapParam iosIapParam,HttpServletRequest request) {
+		log.debug("苹果内购校验开始，交易校验数据：", iosIapParam);
+        //线上环境验证
+        String verifyResult = apple.buyAppVerify(iosIapParam.getTransactionReceipt(), 1);
+        if (verifyResult == null) {
+            return new Resp<Object>(500, "苹果验证失败，返回数据为空", "");
+        } else {
+        	  log.debug("线上，苹果平台返回JSON:" + verifyResult);
+            JSONObject appleReturn = JSONObject.parseObject(verifyResult);
+            String states = appleReturn.getString("status");
+              //无数据则沙箱环境验证
+            if ("21007".equals(states)) {
+                verifyResult = apple.buyAppVerify(iosIapParam.getTransactionReceipt(), 0);
+                log.debug("沙盒环境，苹果平台返回JSON:" + verifyResult);
+                appleReturn = JSONObject.parseObject(verifyResult);
+                states = appleReturn.getString("status");
+             }
+            log.debug("苹果平台返回值：appleReturn:,{}" + appleReturn);
+              // 前端所提供的收据是有效的    验证成功
+            if (states.equals("0")) {
+                String receipt = appleReturn.getString("receipt");
+                JSONObject returnJson = JSONObject.parseObject(receipt);
+                String originalTransactionId = returnJson.getString("original_transaction_id");
+                if(Func.equals(originalTransactionId, iosIapParam.getTransactionIdentifier())) {
+                	 try {
+                		 	//处理业务逻辑
+                		 	//更新会员有效期，写入支付日志等
+                		 	/////   此处自行实现相应逻辑 ////
+							return new Resp<Object>(200, "支付成功",null);
+					  } catch (Exception e) {
+						log.error(e.getMessage(),e);
+						return new Resp<Object>(500, "服务器异常，请联系客服，错误信息："+e.getMessage(), "");
+					  }
+                }else {
+                	 return new Resp<Object>(500, "交易校验失败，当前交易不在交易列表中", "");
+                   }
+                   
+            } else {
+                return new Resp<Object>(500, "支付失败，错误码：" + states, "");
+            }
+        }
+	}
+	
+	@ApiOperation("苹果账号登陆")
+	@PostMapping("/signInApple")
+	public Resp<NutMap> signInApple(@Valid @RequestBody AppleLoginUserInfo userData, HttpServletRequest request) {
+		log.debug("苹果账号登陆:");
+		log.debug("{}",userData);
+		try {
+			UserInfo userInfo = userData.getUserInfo();
+			
+			String fullName = "";
+			if(userInfo.getFullName()!=null) {
+				if(Func.isNotBlank(userInfo.getFullName().getFamilyName())
+						&& Func.isNotBlank(userInfo.getFullName().getGiveName())) {
+					fullName = userInfo.getFullName().getFamilyName()+userInfo.getFullName().getGiveName();
+				}else if(Func.isNotBlank(userInfo.getFullName().getNickName())) {
+					fullName = userInfo.getFullName().getNickName();
+				}
+			}
+			
+			//授权验证
+			AppleSignValidateVo res = apple.verifyIdentifyToken(userInfo.getIdentityToken());
+			if(!res.isSuccess()) {
+				return new Resp<>().error(res.getMsg());
+			}
+			if(Func.isNotBlank(res.getRsemail())) {
+				if(Func.isBlank(fullName)) {
+					fullName =res.getRsemail();
+				}
+				userInfo.setEmail(res.getRsemail());
+			}
+			//查库，验证用户信息
+			/////   此处自行实现相应逻辑 ////
+			return new Resp<>().ok("登录成功",res);
+		} catch (Exception e) {
+			log.error(e.getMessage(),e);
+			String errorMsg = Func.isBlank(e.getMessage())?"空指针异常":e.getMessage();
+			return new Resp<>().error("登陆失败，错误原因："+errorMsg);
+		}
+	}
+	
+}
+
+```
+
+# 6.许可证
 MIT License 
