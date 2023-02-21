@@ -2,16 +2,16 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>net.hlinfo</groupId>
   <artifactId>pbp-pay</artifactId>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
   <name>pbp-pay</name>
-  <description>pbp-pay 是基于Spring Boot，集成微信支付和支付宝支付的工具</description>
+  <description>pbp-pay 是基于Spring Boot，集成支付宝支付、微信支付、iOS应用内购支付校验的工具，轻量级、开箱即用、快速使用。</description>
   
   <properties>
 		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<hlinfo-utils-redis-spring-boot-starter.version>1.0.2</hlinfo-utils-redis-spring-boot-starter.version>
+		<hlinfo-utils-redis-spring-boot-starter.version>1.0.3</hlinfo-utils-redis-spring-boot-starter.version>
 		<swagger2.version>1.5.22</swagger2.version>
 		<alipay-sdk-java.version>4.35.32.ALL</alipay-sdk-java.version>
 		<wechatpay-apache-httpclient.version>0.4.8</wechatpay-apache-httpclient.version>

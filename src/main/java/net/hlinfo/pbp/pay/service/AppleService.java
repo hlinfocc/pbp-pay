@@ -42,7 +42,7 @@ public class AppleService {
 	 */
 	private static final String url_verify = "https://buy.itunes.apple.com/verifyReceipt";
 	
-	private static class TrustAnyTrustManager implements X509TrustManager {
+	private class TrustAnyTrustManager implements X509TrustManager {
        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         }
         public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
@@ -52,7 +52,7 @@ public class AppleService {
         }
     }
 
-    private static class TrustAnyHostnameVerifier implements HostnameVerifier {
+    private class TrustAnyHostnameVerifier implements HostnameVerifier {
         public boolean verify(String hostname, SSLSession session) {
             return true;
         }
@@ -67,7 +67,7 @@ public class AppleService {
      * @return null 或返回结果
      *
      */
-    public static String buyAppVerify(String receipt,int type) {
+    public String buyAppVerify(String receipt,int type) {
         //环境判断 线上/开发环境用不同的请求链接
         String url = "";
         if(type==0){
@@ -115,7 +115,7 @@ public class AppleService {
      * @param str 字符串
      * @return 编码后的BASE64串
      */
-    public static String getBASE64(String str) {
+    public String getBASE64(String str) {
         byte[] b = str.getBytes();
         String s = null;
         if (b != null) {

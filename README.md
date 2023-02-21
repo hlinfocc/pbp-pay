@@ -3,7 +3,7 @@
 
 # 简介
 
-pbp-pay 是基于Spring Boot，集成微信支付和支付宝支付的工具，轻量级、开箱即用、快速使用。
+pbp-pay 是基于Spring Boot，集成支付宝支付、微信支付、iOS应用内购支付校验的工具，轻量级、开箱即用、快速使用。
 
 # 特点
 
@@ -240,31 +240,25 @@ public class PayTestController extends BaseController {
 package net.hlinfo.example.controller;
 
 
-import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import org.nutz.dao.Cnd;
-import org.nutz.lang.Strings;
 import org.nutz.lang.util.NutMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import net.hlinfo.example.utils.JwtUtil;
 import net.hlinfo.example.utils.Resp;
 import net.hlinfo.opt.Func;
-import net.hlinfo.pbp.pay.opt.apple.AppleLogin;
+import net.hlinfo.opt.Jackson;
 import net.hlinfo.pbp.pay.opt.apple.AppleLoginUserInfo;
 import net.hlinfo.pbp.pay.opt.apple.AppleLoginUserInfo.UserInfo;
 import net.hlinfo.pbp.pay.opt.apple.AppleSignValidateVo;
@@ -274,7 +268,7 @@ import net.hlinfo.pbp.pay.service.AppleService;
 @Api(tags = "Apple账号登录及iOS内购项目支付测试")
 @RestController
 @RequestMapping("/apple")
-public class AppleController extends BaseController {
+public class AppleController {
 	
 	@Autowired
 	private AppleService apple;
@@ -289,22 +283,20 @@ public class AppleController extends BaseController {
             return new Resp<Object>(500, "苹果验证失败，返回数据为空", "");
         } else {
         	  log.debug("线上，苹果平台返回JSON:" + verifyResult);
-            JSONObject appleReturn = JSONObject.parseObject(verifyResult);
-            String states = appleReturn.getString("status");
+        	  JsonNode appleReturn = Jackson.toJsonObject(verifyResult);
+            int states = appleReturn.get("status").asInt();
               //无数据则沙箱环境验证
-            if ("21007".equals(states)) {
+            if (states == 21007) {
                 verifyResult = apple.buyAppVerify(iosIapParam.getTransactionReceipt(), 0);
                 log.debug("沙盒环境，苹果平台返回JSON:" + verifyResult);
-                appleReturn = JSONObject.parseObject(verifyResult);
-                states = appleReturn.getString("status");
+                appleReturn =  Jackson.toJsonObject(verifyResult);
+                states = appleReturn.get("status").asInt();
              }
             log.debug("苹果平台返回值：appleReturn:,{}" + appleReturn);
               // 前端所提供的收据是有效的    验证成功
-            if (states.equals("0")) {
-                String receipt = appleReturn.getString("receipt");
-                JSONObject returnJson = JSONObject.parseObject(receipt);
-                String originalTransactionId = returnJson.getString("original_transaction_id");
-                if(Func.equals(originalTransactionId, iosIapParam.getTransactionIdentifier())) {
+            if (states == 0) {
+            	   List<String> originalTransactionIds = appleReturn.findValuesAsText("original_transaction_id");
+                if(originalTransactionIds.contains(iosIapParam.getTransactionIdentifier())) {
                 	 try {
                 		 	//处理业务逻辑
                 		 	//更新会员有效期，写入支付日志等
